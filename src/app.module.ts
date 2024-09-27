@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { customConfig, validate } from './config';
 import { User, Offer, Purchase } from './entities';
+import { AcquisitionService } from './acquisition.service';
+import { AcquisitionController } from './acquisition.controller';
 
 @Module({
 	imports: [
@@ -26,6 +28,9 @@ import { User, Offer, Purchase } from './entities';
 				entities: [User, Offer, Purchase],
 			}),
 		}),
+		TypeOrmModule.forFeature([User, Offer, Purchase]),
 	],
+	providers: [AcquisitionService],
+	controllers: [AcquisitionController],
 })
 export class AppModule {}
