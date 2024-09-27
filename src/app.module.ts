@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BullModule } from '@nestjs/bull';
 
 import { customConfig, validate } from './config';
 import { User, Offer, Purchase } from './entities';
 import { AcquisitionService } from './acquisition.service';
 import { AcquisitionController } from './acquisition.controller';
+import { PurchaseProcessor } from './purchase.processor';
 
 @Module({
 	imports: [
@@ -29,8 +31,20 @@ import { AcquisitionController } from './acquisition.controller';
 			}),
 		}),
 		TypeOrmModule.forFeature([User, Offer, Purchase]),
+		BullModule.forRootAsync({
+			inject: [ConfigService],
+			useFactory: async (config: ConfigService) => ({
+				redis: {
+					host: config.get<string>('redis.host'),
+					port: config.get<number>('redis.port'),
+				},
+			}),
+		}),
+		BullModule.registerQueue({
+			name: 'purchases',
+		}),
 	],
-	providers: [AcquisitionService],
+	providers: [AcquisitionService, PurchaseProcessor],
 	controllers: [AcquisitionController],
 })
 export class AppModule {}

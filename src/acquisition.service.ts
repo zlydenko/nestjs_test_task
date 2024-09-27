@@ -1,9 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { InjectQueue } from '@nestjs/bull';
+import { Repository } from 'typeorm';
+import { Queue } from 'bull';
 
 import { CreatePurchaseDto, CreateUserDto } from './dto';
 import { Offer, Purchase, User } from './entities';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class AcquisitionService {
@@ -13,12 +15,9 @@ export class AcquisitionService {
 		@InjectRepository(Purchase)
 		private readonly purchaseRepository: Repository<Purchase>,
 		@InjectRepository(Offer)
-		private readonly offerRepository: Repository<Offer>
+		private readonly offerRepository: Repository<Offer>,
+		@InjectQueue('purchases') private purchasesQueue: Queue
 	) {}
-
-	private sendAnalyticsEvent() {}
-
-	private sendAstrologicalReport() {}
 
 	async createUser(createUserInput: CreateUserDto) {
 		const { email, marketingData } = createUserInput;
@@ -40,8 +39,11 @@ export class AcquisitionService {
 
 		const purchase = await this.purchaseRepository.create({ user, offer });
 
-		this.sendAnalyticsEvent();
-		this.sendAstrologicalReport();
+		await this.purchasesQueue.add('analytics-event', {
+			userId,
+			offerId,
+		});
+		await this.purchasesQueue.add('astrology-report', { userId }, { delay: 86_400_000 });
 
 		return purchase;
 	}
