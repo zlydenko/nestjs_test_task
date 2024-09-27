@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { customConfig, validate } from './config';
+import { User, Offer, Purchase } from './entities';
 
 @Module({
 	imports: [
@@ -11,6 +13,18 @@ import { customConfig, validate } from './config';
 
 			load: [customConfig],
 			validate,
+		}),
+		TypeOrmModule.forRootAsync({
+			inject: [ConfigService],
+			useFactory: async (config: ConfigService) => ({
+				type: 'postgres',
+				host: config.get<string>('database.host'),
+				port: config.get<number>('database.port'),
+				username: config.get<string>('database.username'),
+				password: config.get<string>('database.password'),
+				database: config.get<string>('database.name'),
+				entities: [User, Offer, Purchase],
+			}),
 		}),
 	],
 })
