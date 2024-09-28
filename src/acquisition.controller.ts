@@ -13,11 +13,7 @@ export class AcquisitionController {
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 		createUserDto: CreateUserDto
 	) {
-		try {
-			return this.acquisitionService.createUser(createUserDto);
-		} catch (error) {
-			throw new BadRequestException(error.message);
-		}
+		return this.acquisitionService.createUser(createUserDto);
 	}
 
 	@Post('purchases')
@@ -25,10 +21,6 @@ export class AcquisitionController {
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 		createPurchaseDto: CreatePurchaseDto
 	) {
-		try {
-			return this.acquisitionService.createPurchase(createPurchaseDto);
-		} catch (error) {
-			throw new BadRequestException(error.message);
-		}
+		return this.acquisitionService.createPurchase(createPurchaseDto);
 	}
 }
